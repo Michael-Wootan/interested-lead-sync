@@ -1,0 +1,14 @@
+{
+  "groups": {
+    "wholesale": "000000000000000001",
+    "international": "000000000000000002"
+  },
+  "campaigns": {
+    "00000000-0000-0000-0000-000000000001": "wholesale",
+    "00000000-0000-0000-0000-000000000002": "international"
+  },
+  "nameRules": [
+    { "pattern": "wholesale|domestic", "segment": "wholesale" },
+    { "pattern": "international|\\bintl\\b|\\beu\\b|\\bwave\\b", "segment": "international" }
+  ]
+}

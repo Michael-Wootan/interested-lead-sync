@@ -1,0 +1,66 @@
+name: Interested lead sync
+
+# Weekdays 13:00 UTC, before the working day starts
+on:
+  schedule:
+    - cron: '0 13 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (list what would be added, push nothing)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: interested-lead-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    # Scheduled runs are off until the repository variable ENABLE_SCHEDULE is 'true',
+    # so a fresh fork or an unconfigured copy never runs (or fails) on its own.
+    if: github.event_name == 'workflow_dispatch' || vars.ENABLE_SCHEDULE == 'true'
+    runs-on: ubuntu-latest
+    env:
+      INSTANTLY_API_KEY:  ${{ secrets.INSTANTLY_API_KEY }}
+      MAILERLITE_API_KEY: ${{ secrets.MAILERLITE_API_KEY }}
+      GMAIL_USER:         ${{ secrets.GMAIL_USER }}
+      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      EMAIL_NOTIFY:       ${{ secrets.EMAIL_NOTIFY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+
+      # config/routing.json is gitignored; CI writes it from a repository variable
+      - name: Write routing config
+        env:
+          ROUTING_JSON: ${{ vars.ROUTING_JSON }}
+        run: |
+          if [ -n "$ROUTING_JSON" ]; then printf '%s' "$ROUTING_JSON" > config/routing.json; fi
+
+      # state/synced.json lists every address already pushed. It holds real
+      # contacts, so it travels in the Actions cache and is never committed.
+      - name: Restore sync state
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: lead-sync-state-${{ github.run_id }}
+          restore-keys: |
+            lead-sync-state-
+
+      - name: Sync interested leads
+        run: node src/sync.js ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Save sync state
+        if: always() && inputs.dry_run != true
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: lead-sync-state-${{ github.run_id }}

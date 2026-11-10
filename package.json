@@ -1,0 +1,16 @@
+{
+  "name": "interested-lead-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Moves cold-email leads labeled Interested or Meeting booked in Instantly into the right MailerLite nurture group by campaign. Idempotent upserts, auto-detection of new campaigns and a summary email.",
+  "main": "src/sync.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "sync": "node src/sync.js",
+    "dry-run": "node src/sync.js --dry-run"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "nodemailer": "^8.0.11"
+  }
+}
