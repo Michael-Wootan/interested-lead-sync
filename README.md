@@ -54,13 +54,6 @@ flowchart TD
 
 **Quiet by default.** No email is sent on a run that added nothing and failed nothing.
 
-## Results
-
-From the production state file, September 15 to November 9, 2026. Aggregate figures only:
-
-- **43** interested leads moved from cold email into nurture groups without manual copying.
-- Split across two audiences: **22** domestic wholesale and **21** international.
-
 ## Repository layout
 
 ```
